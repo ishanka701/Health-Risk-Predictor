@@ -1,61 +1,99 @@
-import streamlit as st
-import pickle
-import numpy as np
-import plotly.express as px
+# Health Risk Predictor
 
-model=pickle.load(open("Health_risk_predict.pkl","rb"))
+A Streamlit web app that predicts a person's health risk level based on lifestyle and health-related inputs, using a pre-trained machine learning model.
 
-encoders=pickle.load(open("label_encoders.pkl","rb"))
+## Features
 
+- Interactive UI built with Streamlit
+- Predicts risk level (e.g., Low / Medium / High) based on user inputs
+- Visualizes lifestyle factors (Diet, Exercise, Sleep, Stress, BMI) in a bar chart using Plotly
 
-st.title("Health Risk Predictor")
+## Inputs
 
-age=st.slider("Age",18,80,22)
-diet=st.selectbox("Diet Quality",['Poor','Average','Good'])
-exercise=st.slider("Exersice Day per Week",0,7,3)
-sleep=st.slider("Sleep Hours",3,12,6)
-stress=st.selectbox("Stress Level", ['Low', 'Medium' ,'High'])
-bmi=st.number_input("BMI",10.0,40.0,22.0)
-smoking=st.selectbox("Smoking",["Yes","No"])
-alcohol=st.selectbox("Alcohol consumption", ['Low','Medium' ,'High'])
-family_history=st.selectbox("Family History of Disease",["Yes","No"])
+| Feature | Type | Range / Options |
+|---|---|---|
+| Age | Slider | 18 - 80 |
+| Diet Quality | Dropdown | Poor, Average, Good |
+| Exercise Days per Week | Slider | 0 - 7 |
+| Sleep Hours | Slider | 3 - 12 |
+| Stress Level | Dropdown | Low, Medium, High |
+| BMI | Number input | 10.0 - 40.0 |
+| Smoking | Dropdown | Yes, No |
+| Alcohol Consumption | Dropdown | Low, Medium, High |
+| Family History of Disease | Dropdown | Yes, No |
 
+## How It Works
 
-if st.button("Predict Risk"):
-    
-    input_data=[age,
-                encoders['diet'].transform([diet])[0],
-                exercise,
-                sleep,
-                encoders['stress'].transform([stress])[0],
-                bmi,
-                encoders['smoking'].transform([smoking])[0],
-                encoders['alcohol'].transform([alcohol]) [0],
-                encoders['family_history'].transform([family_history])[0],
-                ]
-    
-    prediction=model.predict([input_data])
-    probs=model.predict([input_data])
-    
-    risk_label= encoders['risk_level'].inverse_transform([prediction[0]])[0]
-    
-    st.success(risk_label)
-    
-    
-    #Bar Chart for lifecycle  factors
-    
-    factors={
-        "Diet":encoders['diet'].transform([diet])[0],
-        "Exercise":exercise,
-        "Sleep":sleep,
-        "Stress":encoders['stress'].transform([stress])[0],
-        "BMI":bmi
-    }
-    
-    bar_fig=px.bar(
-        x=list(factors.keys()),
-        y=list(factors.values()),
-        labels={"x":"Factors","y":"value"},
-        title="Your Lifestyle Factors"
-    )
-    st.plotly_chart(bar_fig)
+1. The user enters their lifestyle and health details through the sidebar/main inputs.
+2. Categorical inputs are encoded using pre-fitted `LabelEncoder` objects (`label_encoders.pkl`).
+3. The encoded feature vector is passed to a pre-trained model (`Health_risk_predict.pkl`) to generate a prediction.
+4. The predicted risk level is decoded back to its original label and displayed.
+5. A bar chart of the entered lifestyle factors is rendered using Plotly.
+
+## Project Structure
+
+```
+.
+├── app.py                     # Main Streamlit application
+├── Health_risk_predict.pkl    # Trained ML model
+├── label_encoders.pkl         # Dictionary of LabelEncoders for categorical features
+├── requirements.txt           # Python dependencies
+└── README.md
+```
+
+## Installation
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/<your-username>/health-risk-predictor.git
+   cd health-risk-predictor
+   ```
+
+2. Create a virtual environment (optional but recommended):
+   ```bash
+   python -m venv venv
+   source venv/bin/activate   # On Windows: venv\Scripts\activate
+   ```
+
+3. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+## Usage
+
+Run the app locally with:
+
+```bash
+streamlit run app.py
+```
+
+Then open the local URL shown in the terminal (usually `http://localhost:8501`) in your browser.
+
+## Requirements
+
+```
+streamlit
+numpy
+plotly
+scikit-learn
+```
+
+> Note: `scikit-learn` is required even though it isn't imported directly in `app.py`, since the pickled model and encoders depend on it for unpickling.
+
+## Model Files
+
+This app expects two pickle files in the project root:
+
+- `Health_risk_predict.pkl` — the trained classification model
+- `label_encoders.pkl` — a dictionary of `LabelEncoder` objects keyed by feature name (`diet`, `stress`, `smoking`, `alcohol`, `family_history`, `risk_level`)
+
+Make sure these files are generated from the same training pipeline/version of scikit-learn to avoid unpickling errors.
+
+## Disclaimer
+
+This tool is for educational/demonstration purposes only and is **not** a substitute for professional medical advice, diagnosis, or treatment.
+
+## License
+
+[MIT](LICENSE)
